@@ -94,6 +94,18 @@ INSERT INTO `produk` (`idProduk`, `namaProduk`, `kategori`, `harga`, `linkFoto`)
 	(20, 'Cappuchino', 'coffe', 14000.00, 13),
 	(21, 'Kentang Goreng', 'snack', 12000.00, 14);
 
+-- Dumping structure for table patrolcoffe.pengeluaran
+CREATE TABLE IF NOT EXISTS `pengeluaran` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tanggal` date NOT NULL,
+  `keterangan` varchar(255) NOT NULL,
+  `jumlah` decimal(10,2) NOT NULL,
+  `kategori` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table patrolcoffe.pengeluaran: ~0 rows (approximately)
+
 -- Dumping structure for view patrolcoffe.riwayat
 -- Creating temporary table to overcome VIEW dependency errors
 CREATE TABLE `riwayat` (

@@ -33,17 +33,20 @@
         </a>
         </span>
         <span class="mx-2 away">
-            Riwayat
+            <a href="/admin/riwayat" class="away">Riwayat</a> 
         </span>
         <span class="mx-2 navigasi">
             Akun Kasir
+        </span>
+        <span class="mx-2">
+            <a href="/admin/financial" class="away">Laporan Keuangan</a>
         </span>
     </div>
     <div class="datetime text-dark">
       <span id="time"></span>
       <span id="date"></span>
       <span class="fw-bold mx-2" id-data="<%= user.id %>"> Welcome <%= user.name %></span>
-      <form action="http://localhost:8080/logout" class="d-inline" method="post">
+      <form action="/logout" class="d-inline" method="post">
         <button type="submit" class="logout p-2">Logout</button>
       </form>
     </div>

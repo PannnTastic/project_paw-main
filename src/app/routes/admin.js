@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const admincontroller = require('../controller/admincontroller');
-const db = require('../infrastructure/database/connection');
+const {db} = require('../infrastructure/database/connection');
 const auth = require('../middleware/auth')
 const multer = require("multer");
 
@@ -40,6 +40,11 @@ admin.get('/riwayat', (req, res) => {
     res.render('admin/riwayat', {user})
 })
 
+admin.get('/financial', (req, res) => {
+    const user = req.session.user;
+    res.render('admin/financial', {user})
+})
+
 admin.get('/user', (req, res) => {
     const user = req.session.user;
     const karyawan = 'SELECT * FROM karyawan';
@@ -69,5 +74,9 @@ admin.delete('/product/:id',admincontroller.deleteProduct)
 //Transaksi
 admin.delete('/transaksi/:id',admincontroller.deleteTransaksi)
 admin.get('/transaksi',admincontroller.riwayatTransaksi)
+
+// Financial routes - changed path to avoid conflict
+admin.get('/financial/data', admincontroller.getFinancialData)
+admin.post('/expense', admincontroller.addExpense)
 
 module.exports = admin;

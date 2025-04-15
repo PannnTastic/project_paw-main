@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS System</title>
+  <title>Riwayat Transaksi - POS System</title>
   <link rel="stylesheet" href="/css/karyawan.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style>
@@ -21,11 +21,72 @@
       border: none;
       border-radius: 10px;
     }
+    .transaction-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .edit-payment {
+      background-color: #904b03;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .payment-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+    .payment-tunai {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+    .payment-non-tunai {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .total {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #28a745;
+    }
+    .filter-container {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .filter-btn {
+      margin-right: 5px;
+      border: 1px solid #ddd;
+      background-color: white;
+      border-radius: 20px;
+      padding: 5px 15px;
+      transition: all 0.3s;
+    }
+    .filter-btn.active {
+      background-color: #904b03;
+      color: white;
+      border-color: #904b03;
+    }
+    .filter-title {
+      font-weight: bold;
+      margin-right: 10px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1 class="text-dark">Dashboard</h1>
+    <h1 class="text-dark">Riwayat Transaksi</h1>
     <div class="text-dark fw-bold">
         <span class="mx-2">
         <a href="/karyawan/dashboard" class="away">
@@ -35,50 +96,202 @@
         <span class="mx-2 navigasi">
             Riwayat
         </span>
+        <!-- Add other menu items as needed -->
     </div>
     <div class="datetime text-dark">
       <span id="time"></span>
       <span id="date"></span>
       <span class="fw-bold mx-2" id-data="<%= user.id %>"> Welcome <%= user.name %></span>
-      <form action="http://localhost:8080/logout" class="d-inline" method="post">
+      <form action="/logout" class="d-inline" method="post">
         <button type="submit" class="logout p-2">Logout</button>
       </form>
     </div>
   </header>
 
+  <div class="filter-container">
+    <span class="filter-title">Filter Periode:</span>
+    <button class="filter-btn active" data-period="all">Semua</button>
+    <button class="filter-btn" data-period="today">Hari Ini</button>
+    <button class="filter-btn" data-period="week">Minggu Ini</button>
+    <button class="filter-btn" data-period="month">Bulan Ini</button>
+    <button class="filter-btn" data-period="year">Tahun Ini</button>
+  </div>
+
   <div class="riwayat">
-    
+    <!-- Transactions will be loaded here -->
+  </div>
+
+  <!-- Modal for editing payment method -->
+  <div class="modal fade" id="editPaymentModal" tabindex="-1" aria-labelledby="editPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPaymentModalLabel">Edit Metode Pembayaran</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="paymentMethodForm">
+            <input type="hidden" id="transactionId">
+            <div class="mb-3">
+              <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+              <select class="form-select" id="paymentMethod" required>
+                <option value="Tunai">Tunai</option>
+                <option value="Non Tunai">Non Tunai (Debit/Credit/e-Wallet)</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="edit" id="savePaymentMethod">Simpan</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script>
-function updateDateTime() {
+    function updateDateTime() {
       const now = new Date();
       document.getElementById("time").textContent = now.toLocaleTimeString();
       document.getElementById("date").textContent = now.toLocaleDateString();
     }
-
-
-    fetch('http://localhost:8080/karyawan/transaksi', {
-      method: 'GET',
-    })
-    .then(res => res.json())
-    .then(res => {
-        for (let i = 0; i < res.data.length; i++) {
-            document.querySelector('.riwayat').innerHTML += `
-                <div class="transaction-card">
-            <h2>Detail Transaksi</h2>
-            <p><strong>ID Transaksi:</strong> ${res.data[i].id_transaksi}</p>
-            <p><strong>Tanggal Transaksi:</strong> ${res.data[i].tanggal_transaksi}</p>
-            <p><strong>Nama Kasir:</strong>${res.data[i].nama_kasir}</p>
-            <p><strong>Metode Bayar:</strong>${res.data[i].metode_bayar}</p>
-            <p class="total"><strong>Total:</strong>${res.data[i].total}</p>
-        </div>
-            `
-        }
-    })
-
+    
     setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Format currency
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', { 
+        style: 'currency', 
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    // Load transactions with filter
+    function loadTransactions(period = 'all') {
+      // Show loading indicator
+      document.querySelector('.riwayat').innerHTML = '<p class="text-center">Loading...</p>';
+      
+      let url = '/karyawan/transaksi';
+      if (period !== 'all') {
+        url += `?period=${period}`;
+      }
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          const riwayatContainer = document.querySelector('.riwayat');
+          riwayatContainer.innerHTML = '';
+          
+          if (res.data && res.data.length > 0) {
+            for (let i = 0; i < res.data.length; i++) {
+              const transaction = res.data[i];
+              const paymentBadgeClass = transaction.metode_bayar === 'Tunai' ? 'payment-tunai' : 'payment-non-tunai';
+              
+              riwayatContainer.innerHTML += `
+                <div class="transaction-card">
+                  <h2>Detail Transaksi</h2>
+                  <p><strong>ID Transaksi:</strong> ${transaction.id_transaksi}</p>
+                  <p><strong>Tanggal Transaksi:</strong> ${new Date(transaction.tanggal_transaksi).toLocaleString('id-ID')}</p>
+                  <p><strong>Nama Kasir:</strong> ${transaction.nama_kasir}</p>
+                  <p>
+                    <strong>Metode Bayar:</strong> 
+                    <span class="payment-badge ${paymentBadgeClass}" id="payment-badge-${transaction.id_transaksi}">
+                      ${transaction.metode_bayar}
+                    </span>
+                    <button class="edit-payment" onclick="openPaymentModal(${transaction.id_transaksi}, '${transaction.metode_bayar}')">
+                      Ubah Metode
+                    </button>
+                  </p>
+                  <p class="total"><strong>Total:</strong> ${formatCurrency(transaction.total)}</p>
+                </div>
+              `;
+            }
+          } else {
+            riwayatContainer.innerHTML = '<p class="text-center">Tidak ada data transaksi</p>';
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          document.querySelector('.riwayat').innerHTML = '<p class="text-center text-danger">Gagal memuat data transaksi</p>';
+        });
+    }
+
+    // Open payment method modal
+    function openPaymentModal(transactionId, currentMethod) {
+      document.getElementById('transactionId').value = transactionId;
+      document.getElementById('paymentMethod').value = currentMethod;
+      const modal = new bootstrap.Modal(document.getElementById('editPaymentModal'));
+      modal.show();
+    }
+
+    // Save updated payment method
+    document.getElementById('savePaymentMethod').addEventListener('click', function() {
+      const transactionId = document.getElementById('transactionId').value;
+      const paymentMethod = document.getElementById('paymentMethod').value;
+
+      fetch(`/karyawan/transaksi/${transactionId}/payment-method`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          metodeBayar: paymentMethod
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.response === 200) {
+          // Close modal
+          bootstrap.Modal.getInstance(document.getElementById('editPaymentModal')).hide();
+          
+          // Update the payment method badge without reloading the page
+          const badge = document.getElementById(`payment-badge-${transactionId}`);
+          if (badge) {
+            badge.textContent = paymentMethod;
+            badge.className = `payment-badge ${paymentMethod === 'Tunai' ? 'payment-tunai' : 'payment-non-tunai'}`;
+          }
+          
+          // Show success message
+          alert('Metode pembayaran berhasil diubah');
+        } else {
+          alert('Gagal mengubah metode pembayaran: ' + data.message);
+        }
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('Terjadi kesalahan saat mengubah metode pembayaran.');
+      });
+    });
+
+    // Handle filter button clicks
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Remove active class from all buttons
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          
+          // Add active class to clicked button
+          this.classList.add('active');
+          
+          // Load transactions with selected filter
+          loadTransactions(this.getAttribute('data-period'));
+        });
+      });
+      
+      // Initial load - all transactions
+      loadTransactions();
+    });
+
+    // Load transactions when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTransactions();
+    });
   </script>
 </body>
 </html>

@@ -16,7 +16,8 @@ app.use(
         secret: process.env.SESSION_SECRET, // Ganti dengan kunci rahasia
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: false }, // Ubah ke true jika menggunakan HTTPS
+        cookie: { secure: false },
+         // Ubah ke true jika menggunakan HTTPS
     })
 );
 

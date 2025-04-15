@@ -1,4 +1,4 @@
-const db = require('../infrastructure/database/connection');
+const {db} = require('../infrastructure/database/connection');
 const responsAPI = require('../infrastructure/reponse');
 
 exports.getAllproduct = (req,res) => {
