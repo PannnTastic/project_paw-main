@@ -155,14 +155,14 @@ exports.getAllkaryawan = (req,res) => {
 }
 
 exports.getKaryawanBynama = (req,res) => {
-    const nama = req.body.id
-    const sql = 'SELECT * FROM karyawan WHERE idKaryawan =?'
+    const nama = req.params
+    const sql = 'SELECT * FROM karyawan WHERE namaKaryawan =?'
     db.query(sql, [nama], (err, result) => {
         if (err) {
             return responsAPI(500,'Failed to get karyawan','Kegagalan mendapatkan data karyawan',res)
         }else {
             if (result.length==0){
-                return responsAPI(404,'No data found','Data karyawan dengan ID '+ nama +' tidak ditemukan',res)
+                return responsAPI(404,'No data found','Data karyawan dengan nama '+ nama +' tidak ditemukan',res)
             }else {
                 return responsAPI(200,result,'Berhasil mendapatkan data karyawan',res)
             }
